@@ -4,6 +4,7 @@ async function signup(e){
         let signupDetails={
             name:e.target.name.value,
             email:e.target.emailid.value,
+            phonenumber:e.target.phno.value,
             password:e.target.password.value
         }
         console.log(signupDetails)
