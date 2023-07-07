@@ -10,11 +10,11 @@ async function signup(e){
         console.log(signupDetails)
         const response = await axios.post("http://localhost:3000/user/signup",signupDetails)
             if(response.status === 201){
+                alert(response.data.message);
                 window.location.href="../login/login.html"
-            } else {
-                throw new Error('Failed to login')
-            }
+            } 
     } catch(err){
-        document.body.innerHTML+= `<div style="color:red;">${err}</div>`;
+        alert(err.data.message);
+        document.body.innerHTML+= `<div style="color:red;">${err.data.message}</div>`;
     }
 }
