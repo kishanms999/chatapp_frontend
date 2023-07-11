@@ -2,7 +2,7 @@ async function signup(e){
     try{
         e.preventDefault();
         let signupDetails={
-            name:e.target.name.value,
+            username:e.target.username.value,
             email:e.target.emailid.value,
             phonenumber:e.target.phno.value,
             password:e.target.password.value
