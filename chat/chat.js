@@ -112,3 +112,7 @@ async function sendmessage(e){
            },3000)
            }
         }
+
+setInterval(() => {
+    getchats();
+},1000)
