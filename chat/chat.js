@@ -4,6 +4,16 @@ const message=document.getElementById('message');
 
 const sendbtn=document.getElementById('sendbtn');
 
+const memberlist=document.getElementById('memberslist');
+
+const groupname=document.getElementById('groupname');
+
+const deletegroupbtn=document.getElementById('deletegroupbtn');
+
+const adduserbtn=document.getElementById('adduserbtn');
+
+const addusername=document.getElementById('useradd');
+
 function parseJwt (token) {
     var base64Url = token.split('.')[1];
     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -30,8 +40,9 @@ async function sendmessage(e){
                const messagedata={
                   message:message.value
                }
-               const token=localStorage.getItem('token')
-               const response= await axios.post('http://localhost:3000/chat/add-message',messagedata,{headers:{"Authorization":token}})
+               const token=localStorage.getItem('token');
+               const groupId=JSON.parse(localStorage.getItem('groupId'));
+               const response= await axios.post(`http://localhost:3000/chat/add-message/${groupId}`,messagedata,{headers:{"Authorization":token}})
 
                console.log(response.data,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
                
@@ -70,18 +81,24 @@ async function sendmessage(e){
 
 
     window.addEventListener('DOMContentLoaded',getchats);
+    window.addEventListener('DOMContentLoaded',getgroupmembers);
 
     async function getchats(){
         try{
-                   let lastmsgId=JSON.parse(localStorage.getItem('lastmsgId'));
-                   console.log(lastmsgId,">>>>>>>>>>>>")
-                   const response= await axios.get(`http://localhost:3000/chat/get-message/${lastmsgId}`)
-                   console.log(response,">>>>>>>>>>>>>")
-                   lastmsgId+=parseInt(response.data.message.length);
-                   console.log(lastmsgId,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                groupname.innerHTML=JSON.parse(localStorage.getItem('groupName'));
+
+                let groupId=JSON.parse(localStorage.getItem('groupId'));
+                let lastmsgId=JSON.parse(localStorage.getItem(`lastmsgId${groupId}`)); 
+                console.log(lastmsgId)
+                const response= await axios.get(`http://localhost:3000/chat/get-message?lastmsgId=${lastmsgId}&groupId=${groupId}`);
+
+                console.log(response)
+                lastmsgId+=parseInt(response.data.message.length);
+                console.log(lastmsgId)
 
                   
-                   let existingArray=JSON.parse(localStorage.getItem('messages'))||[];
+                let existingArray=JSON.parse(localStorage.getItem(`messages${groupId}`))||[];
+
 
                    if(existingArray.length>=10){
                     existingArray=[];
@@ -113,6 +130,78 @@ async function sendmessage(e){
            }
         }
 
-setInterval(() => {
-    getchats();
-},1000)
+        async function getgroupmembers(){
+            try{
+
+                const groupId=JSON.parse(localStorage.getItem('groupId'));
+                const response= await axios.get(`http://localhost:3000/group/get-members?groupId=${groupId}`);
+                console.log(response);
+                for(let i=0;i<response.data.message.length;i++){
+                    memberlist.innerHTML+=`<li>${response.data.message[i].username}</li>`;
+                }
+
+            }catch(err){
+                console.log(err);
+                msg.innerHTML="";
+              msg.innerHTML=msg.innerHTML+`<div>${err.response.data.message}</div>`;
+              setTimeout(()=>{
+                msg.innerHTML="";
+            },3000)
+            }
+        }
+
+        deletegroupbtn.addEventListener('click',deleteGroup)
+   
+        async function deleteGroup(){
+         try{
+             const groupId=JSON.parse(localStorage.getItem('groupId'));
+             const token=localStorage.getItem('token');
+             const response= await axios.delete(`http://localhost:3000/group/delete-group?groupId=${groupId}`,{headers:{"Authorization":token}});
+             alert(response.data.message);
+             localStorage.removeItem(`messages${groupId}`);
+             localStorage.removeItem(`lastmsgId${groupId}`);
+             localStorage.removeItem('groupName');
+             localStorage.removeItem('groupId');
+             window.location.href='../Group/group.html';
+ 
+             
+         }catch(err){
+             console.log(err);
+             msg.innerHTML="";
+           msg.innerHTML=msg.innerHTML+`<div>${err.response.data.message}</div>`;
+           setTimeout(()=>{
+             msg.innerHTML="";
+         },3000)
+         }
+        }
+
+        adduserbtn.addEventListener('click',adduser)
+
+        async function adduser(){
+            try{
+                if(addusername.value==='' ){
+                    msg.innerHTML="Please Enter message";
+                    setTimeout(()=>{
+                        msg.innerHTML="";
+                        },3000)
+                }
+                else{
+                    const usernameobj={
+                        username:addusername.value
+                    }
+                    const groupId=JSON.parse(localStorage.getItem('groupId'));
+                    const token=localStorage.getItem('token');
+                    const response= await axios.post(`http://localhost:3000/group/add-user?groupId=${groupId}`,usernameobj,{headers:{"Authorization":token}})
+                    console.log(response.data)
+                }
+            }
+            catch(err){
+                console.log(err);
+            }
+        }
+
+
+// setInterval(() => {
+//     getchats();
+//     getgroupmembers();
+// },1000)
