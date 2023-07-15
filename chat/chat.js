@@ -137,7 +137,7 @@ async function sendmessage(e){
                 const response= await axios.get(`http://localhost:3000/group/get-members?groupId=${groupId}`);
                 console.log(response);
                 for(let i=0;i<response.data.message.length;i++){
-                    memberlist.innerHTML+=`<li>${response.data.message[i].username}</li>`;
+                    showmember(response.data.message[i])
                 }
 
             }catch(err){
@@ -192,7 +192,8 @@ async function sendmessage(e){
                     const groupId=JSON.parse(localStorage.getItem('groupId'));
                     const token=localStorage.getItem('token');
                     const response= await axios.post(`http://localhost:3000/group/add-user?groupId=${groupId}`,usernameobj,{headers:{"Authorization":token}})
-                    console.log(response.data)
+                    console.log(response.data.message);
+                    getgroupmembers()
                 }
             }
             catch(err){
@@ -200,6 +201,39 @@ async function sendmessage(e){
             }
         }
 
+        async function showmember(response){
+            try{  
+                memberlist.innerHTML+=`<li>${response.username} <button onclick="deleteuser('${response.id}')">Delete User</button> <button onclick="makeadmin('${response.id}')">Make Admin</button></li>`;
+            }catch(err){
+                throw new Error(err);
+            }
+        }
+
+        async function deleteuser(id){
+            try{
+                const groupId=JSON.parse(localStorage.getItem('groupId'));
+                const token=localStorage.getItem('token');
+                const response= await axios.delete(`http://localhost:3000/group/delete-user?groupId=${groupId}&delUid=${id}`,{headers:{"Authorization":token}})
+                console.log(response.data.message);
+                getgroupmembers();
+            }
+            catch(err){
+                console.log(err);
+            }
+        }
+
+        async function makeadmin(id){
+            try{
+                const groupId=JSON.parse(localStorage.getItem('groupId'));
+                const token=localStorage.getItem('token');
+                console.log(token);
+                const response= await axios.get(`http://localhost:3000/group/make-admin?groupId=${groupId}&memUid=${id}`,{headers:{"Authorization":token}})
+                console.log(response.data.message);
+            }
+            catch(err){
+                console.log(err);
+            }
+        }
 
 // setInterval(() => {
 //     getchats();
